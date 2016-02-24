@@ -11,7 +11,7 @@
 
 	<context:component-scan base-package="com.mkyong.common.controller" />
 
-	<mvc:annotation-driven />
+	<mvc:annotation-driven/>
 
 	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
 	<bean id="multipartResolver"
