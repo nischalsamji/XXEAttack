@@ -44,49 +44,36 @@ public class XMLController {
 	
 	
 	@RequestMapping(value="/upload", method=RequestMethod.POST)
-    public String  handleFileUpload(HttpServletResponse response, @RequestParam("file") MultipartFile file){
-        if (!file.isEmpty()) {
+    public ModelAndView handleFileUpload(HttpServletResponse response, @RequestParam("file") MultipartFile file){
+        ModelAndView mv = new ModelAndView("dispxml");
+		if (!file.isEmpty()) {
         try{
-            response.setContentType("application/xml");
+        	
+            response.setContentType("text/xml");
             File inputFile = new File(file.getOriginalFilename());
-            file.transferTo(inputFile);
-         
+            file.transferTo(inputFile);         
             DocumentBuilderFactory dbFactory 
                = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(inputFile);
-            System.out.println(doc.getDocumentURI());
+            dbFactory.setFeature( "http://apache.org/xml/features/disallow-doctype-decl", false);
             doc.getDocumentElement().normalize();
-            System.out.println(doc.toString());
-            System.out.println("Root element :" 
-               + doc.getDocumentElement().getNodeName());
             OutputFormat format = new OutputFormat(doc);
             String filename = "mydocument"+System.currentTimeMillis()+".xml";
             @SuppressWarnings("deprecation")
             XMLSerializer serializer = new XMLSerializer(
                 new FileOutputStream(new File(filename)),format);
             serializer.serialize(doc);
-            NodeList nList = doc.getChildNodes();
-            System.out.println("----------------------------");
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-               Node nNode = nList.item(temp);
-               System.out.println("\nCurrent Element :" 
-                  + nNode.getNodeName());
-               if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                  Element eElement = (Element) nNode;
- 
-               }
-            }
             TransformerFactory tf = TransformerFactory.newInstance();
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(doc), new StreamResult(writer));
-            String output = writer.getBuffer().toString().replaceAll("\n|\r", "");
-            System.out.println(output);
-            
+            String output = writer.getBuffer().toString().replaceAll("\r", "");
+            System.out.println(output);            
+            mv.addObject("file", output);
             response.setContentType("text/xml");
-            return output; 
+            return mv; 
             
          } catch (Exception e) {
         	 
